@@ -1,4 +1,4 @@
-I plan on using this repository as a reference 
+I plan on using GitHubas a reference 
 to challenges i complete on HTB and my OSCP 
 journey over the next couple months
 
