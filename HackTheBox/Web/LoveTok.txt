@@ -1,0 +1,49 @@
+LoveTok
+
+looking in the source code of the website, we can see it uses a file called main.js. It contains the scripts required to present and update the countdown timer.
+
+
+This file however does not contain the vulnerability, and it is instead in the PHP script executed which gets the format get request parameter ( which we notice
+if we click the button at the bottom of the page and look at the URL ), turns it into a time, and creates a random point in the future for the page to countdown from.
+
+inside the \web_lovetok\challenge\models\TimeModel.php file, we see 
+
+$this->format = addslashes($format);
+
+this is used to escape characters which can be used for php injection attacks.
+
+This is vulnerable to two attacks.
+
+
+
+The first i tried was unsuccessful.
+
+    It relies on the script using a variable length encoding for characters. When escaping characters, addslashes() puts a '\' before
+    it in order to treat it as a part of the string, not a piece of code. So ", ', \ and the NUL byte are all escaped meaning we cannot escape strings using them.
+
+    However, there are some characters which take two bytes to encode. The article I read described ¿ as one of them, encoded by %bf. the character ' is encoded with %27,
+    the character '\' is encoded by %5c and there is a character (뽜) encoded with %bf%5c. 
+    
+    when we put in ¿'(%bf%27), a backslash is put in before the ' by addslashes() making it %bf%5c%27, which is 뽜' . We now have an unescaped quote from this.
+    
+    However, this did not work as the script seemed to interprete the bytes as UTF-8, and I could not find characters in the character set that would work like this
+    
+    
+After looking at other articles for bypassing addslashes(), I came across the other solution
+
+    I read this article: https://www.programmersought.com/article/30723400042/
+    
+    Essentially, it abuses how variables are declared in PHP, and how functions can be declared as variables while also being run, in order to get RCE.
+    When getting a variable, PHP uses the syntax $var. However, ${var} can be used instead, as the curly braces define the scope of which part of the code is the variable
+    The return value of a function can also be a variable name! ${return_a()} = 123, if return_a() is a function that returns 'a', will define a variable 'a' holding 123,
+    by executing return_a() and setting its return value to 123.
+    
+    using this knowledge, we can construct a payload in order to get RCE despite being stuck inside the addslashes() function.
+    
+    We need parametera format=${eval($_GET[OUR_VARIABLE])}&OUR_VARIABLE=CODE
+    we put our CODE inside the OUR_VARIABLE parameter so it does not have to deal with escaping from addslashes(), then we run it by getting format to be equal to a variable
+    whos name we get after executing eval(CODE) (it basically becomes this after we do $_GET[OUR_VARIABLE]).
+    
+    we now have RCE on the machine. simply use ls to find the flag and cat the flag to get it.
+    
+    
