@@ -1,0 +1,13 @@
+On looking at the websites source code, you can see it uses Pythons PIL (Pillow) library to manipulate images.
+
+PIL uses ghostscript to process EPS Images. an EPS image stands for Encapsulated Post Script, and is essentially a vector graphic,
+but there is a vulnerabillity with the ghostscript function called by PIL if PIL detects the image it is opening is an EPS image
+(using metadata from the start of the file).
+
+This vulnerabillity allows for RCE, and the payload is found in this repository:
+https://github.com/farisv/PIL-RCE-Ghostscript-CVE-2018-16509
+
+Once we have RCE, we can get the flag. However, we do not have a means of reading output from our commands.
+We can get around this by piping input to the images loaded by the page, this can be a gif which we upload previously or one of the
+static assets used by the page. By appending the output of our commands to the end of the file, we can read the outputs of our code
+execution and get the flag.
