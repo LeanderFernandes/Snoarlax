@@ -1,0 +1,4 @@
+At the start we are presented with a login form. We can inject * for each of the fields to login.
+
+By guessing the admin's username as Reese, we can then do a Blind SQL injection attack on the password, getting the password one character at a time.
+This is best done using a python script.
