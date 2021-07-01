@@ -1,0 +1,14 @@
+This involves a SSTI attack
+
+If we go to a random directory, say /'abc' , we get a message saying the page 'abc' could not be found.
+
+This is a hint that there may be a template injection vulnerabillity, as it doesnt just throw a normal 404 at us.
+
+We can try seeing if it is vulnerable to XSS by looking for /<img src="" onerror=alert(1)>, and seeing an alert being thrown. This is not helpful for getting the flag,
+but we can see it works.
+
+Instead, we need to do a SSTI attack. Notice the page evaluates if we use {{7*7}}, and shows 49.
+
+by doing /{{request.application.__globals__.__builtins__.__import__("os").popen("id").read()}}, we can do the ID command, and we have RCE where we can ge the flag
+
+https://www.onsecurity.io/blog/server-side-template-injection-with-jinja2/
