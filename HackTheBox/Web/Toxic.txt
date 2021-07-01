@@ -1,0 +1,19 @@
+This challenge involves using LFI and getting RCE using it.
+
+Firstly, the LFI (Local File inclusion).
+The web application works by using a cookie called PHPSESSID. It is made by serialising a PageModel object and encoding it as a base64 string.
+This is passed to the server as a cookie, which unserialises it.
+
+The PageModel class is described in models/PageModel.php, and has a variable which contains the path to a file, which is included by the objects
+destructor. This means there is a LFI vulnerabillity, meaning we can include arbitrary files on the server in the webpage, as the PageModel object
+stored in the cookie can be changed by the user, so it is wrong to trust that the deserialised object can be trusted to be generated naturally by
+the page.
+
+However, we do not have any files we can directly change on the server, meaning the LFI vulnerabillity right now is not very useful. We can read
+files sure, but we do not have RCE as we cannot include a PHP payload as we cannot write to files on the server. To solve this, we write a payload
+to the servers logs. Looking at the server configs, we can see there is a log at /var/log/nginx/access.log.
+
+If we try writing a PHP payload in the resource name of our GET request, the request gets URL-encoded so it messes up our payload :(
+Instead, we change the user agent, this keeps the encoding of our payload so we can put a php script in the log file.
+
+Then we include the log file using our LFI vulnerabillity from earlier in order to get RCE, where we can easily read the flag.
